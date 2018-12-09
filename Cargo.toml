@@ -1,0 +1,8 @@
+[package]
+name = "cmos"
+version = "0.1.0"
+authors = ["Noah Rinehart <rinehart.noah@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+x86_64 = "0.3.4"
