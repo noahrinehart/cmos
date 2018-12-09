@@ -3,15 +3,13 @@
 use cpuio::Port;
 
 pub struct CMOS {
-    century_handler: CMOSCenturyHandler,
     address_port: Port<u8>,
     data_port: Port<u8>,
 }
 
 impl CMOS {
-    pub unsafe fn new(century_handler: CMOSCenturyHandler) -> CMOS {
+    pub unsafe fn new() -> CMOS {
         CMOS {
-            century_handler,
             address_port: Port::<u8>::new(0x70),
             data_port: Port::<u8>::new(0x71),
         }
@@ -31,17 +29,17 @@ impl CMOS {
         }
     }
 
-    pub unsafe fn get_update_in_progress_flag(&mut self) -> u8 {
+    pub fn get_update_in_progress_flag(&mut self) -> u8 {
         self.address_port.write(0x0A);
         self.data_port.read() & 0x80
     }
 
-    unsafe fn get_rtc_register(&mut self, reg: u8) -> u8 {
+    fn get_rtc_register(&mut self, reg: u8) -> u8 {
         self.address_port.write(reg);
         self.data_port.read()
     }
 
-    unsafe fn update_into_rtc(&mut self, rtc_time: &mut RTCDateTime) {
+    fn update_into_rtc(&mut self, rtc_time: &mut RTCDateTime) {
         while self.get_update_in_progress_flag() != 0 {
             rtc_time.second = self.get_rtc_register(0x00);
             rtc_time.minute = self.get_rtc_register(0x02);
@@ -52,7 +50,7 @@ impl CMOS {
         }
     }
 
-    pub unsafe fn read_rtc(&mut self) -> RTCDateTime {
+    pub fn read_rtc(&mut self, century_handler: CMOSCenturyHandler) -> RTCDateTime {
 
         let mut rtc_time = RTCDateTime {
             second: 0,
@@ -66,7 +64,7 @@ impl CMOS {
         self.update_into_rtc(&mut rtc_time);
     
         let mut century = 0;
-        if let CMOSCenturyHandler::CenturyRegister(century_reg) = self.century_handler {
+        if let CMOSCenturyHandler::CenturyRegister(century_reg) = century_handler {
             century = self.get_rtc_register(century_reg);
         }
 
@@ -110,7 +108,7 @@ impl CMOS {
             rtc_time.month = (rtc_time.month & 0x0F) + ((rtc_time.month / 16) * 10);
             rtc_time.year = (rtc_time.year & 0x0F) + ((rtc_time.year / 16) * 10);
 
-            if let CMOSCenturyHandler::CenturyRegister(_) = self.century_handler {
+            if let CMOSCenturyHandler::CenturyRegister(_) = century_handler {
                 century = (century & 0x0F) + ((century / 16) * 10);
             } 
         }
@@ -120,7 +118,7 @@ impl CMOS {
         }
 
 
-        match self.century_handler {
+        match century_handler {
             CMOSCenturyHandler::CenturyRegister(_) =>  rtc_time.year += (century * 100) as usize,
             CMOSCenturyHandler::CurrentYear(current_year) => {
                 rtc_time.year += (current_year / 100) * 100;
