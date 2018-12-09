@@ -1,7 +1,7 @@
 # CMOS
 > A utility to read, write CMOS and RTC data. Standard library not required.
 
-[![Linux build status](https://api.travis-ci.org/noahrinehart/cmos.svg)](https://travis-ci.org/noahrinehart/cmos)
+[![Linux build status](https://api.travis-ci.org/noahrinehart/cmos.svg?branch=master)](https://travis-ci.org/noahrinehart/cmos)
 [![Coverage Status](https://coveralls.io/repos/github/noahrinehart/cmos/badge.svg?branch=master)](https://coveralls.io/github/noahrinehart/cmos?branch=master)
 [![crates.io](https://meritbadge.herokuapp.com/cmos)](https://crates.io/crates/cmos)
 
