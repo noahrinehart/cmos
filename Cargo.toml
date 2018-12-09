@@ -2,7 +2,19 @@
 name = "cmos"
 version = "0.1.0"
 authors = ["Noah Rinehart <rinehart.noah@gmail.com>"]
+description = "A utility to read, write CMOS and RTC data. Standard library not required."
+documentation = "https://docs.rs/cmos/"
+homepage = "https://github.com/noahrinehart/cmos"
+repository = "https://github.com/noahrinehart/lcmosrg"
+readme = "README.md"
+keywords = ["osdev", "cmos", "rtc", "port", "i/o"]
+categories = ["date-and-time", "embedded", "hardware-support", "no-std", "os"]
+license = "MIT"
 edition = "2018"
+
+[badges]
+travis-ci = { repository = "noahrinehart/cmos" }
+coveralls = { repository = "noahrinehart/cmos" }
 
 [dependencies]
 cpuio = "0.2.0"
