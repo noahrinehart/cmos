@@ -1,6 +1,6 @@
 #![no_std]
 
-use x86_64::instructions::port::{Port};
+use cpuio::Port;
 
 pub struct CMOS {
     century_handler: CMOSCenturyHandler,
@@ -9,7 +9,7 @@ pub struct CMOS {
 }
 
 impl CMOS {
-    pub fn new(century_handler: CMOSCenturyHandler) -> CMOS {
+    pub unsafe fn new(century_handler: CMOSCenturyHandler) -> CMOS {
         CMOS {
             century_handler,
             address_port: Port::<u8>::new(0x70),
@@ -19,19 +19,15 @@ impl CMOS {
 
     pub fn read(&mut self, output: &mut [u8; 128]) {
         for i in 0..128 {
-            unsafe {
-                self.address_port.write(i);
-                output[i as usize] = self.data_port.read();
-            }
+            self.address_port.write(i);
+            output[i as usize] = self.data_port.read();
         }
     }
 
     pub fn write(&mut self, input: &mut [u8; 128]) {
         for i in 0..128 {
-            unsafe {
-                self.address_port.write(i);
-                self.data_port.write(input[i as usize]);
-            }
+            self.address_port.write(i);
+            self.data_port.write(input[i as usize]);
         }
     }
 
