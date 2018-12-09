@@ -26,7 +26,7 @@ To get the current RTC tiem by passing in the century register num:
 // Create a CMOS object (unsafe due to the use of port I/O)
 let mut cmos = unsafe { CMOS::new() };
 // Read the rtc date time using this year
-let rtc = cmos.read_rtc(CMOSCenturyHandler::CenturyRegister(32));
+let rtc = cmos.read_rtc(CMOSCenturyHandler::CenturyRegister(0xA5));
 ```
 
 [`CMOSCenturyHandler`]: enum.CMOSCenturyHandler.html

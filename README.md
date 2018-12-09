@@ -13,7 +13,7 @@
 Add the crate to your project
 ```sh
 # Cargo.toml
-cmos = "0.1.0"
+cmos = "0.1.1"
 ```
 
 ## Examples
