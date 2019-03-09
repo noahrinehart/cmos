@@ -23,7 +23,7 @@ To read the RTC using the century register.
 use cmos::{CMOS, CMOSCenturyHandler};
 // Create a CMOS object (unsafe due to the use of port I/O)
 let mut cmos = unsafe { CMOS::new() };
-// Read the rtc date time using this year
+// Read the rtc date time using this century
 let rtc = cmos.read_rtc(CMOSCenturyHandler::CenturyRegister(32));
 ```
 
