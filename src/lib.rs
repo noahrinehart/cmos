@@ -17,7 +17,7 @@ To get the current RTC time using the current year:
 // Create a CMOS object (unsafe due to the use of port I/O)
 let mut cmos = unsafe { CMOS::new() };
 // Read the rtc date time using this year
-let rtc = cmos.read_rtc(CMOSCenturyHandler::CurrentYear(2018));
+let rtc = cmos.read_rtc(CMOSCenturyHandler::CurrentYear(2019));
 ```
 
 To get the current RTC tiem by passing in the century register num:
@@ -161,8 +161,8 @@ impl CMOS {
     /// ```rust,no_run
     /// # use cmos::{CMOS, CMOSCenturyHandler};
     /// let mut cmos = unsafe { CMOS::new() };
-    /// // Get current RTC by current year of 2018
-    /// let rtc = cmos.read_rtc(CMOSCenturyHandler::CurrentYear(2018));
+    /// // Get current RTC by current year of 2019
+    /// let rtc = cmos.read_rtc(CMOSCenturyHandler::CurrentYear(2019));
     /// ```
     /// [`RTCDateTime`]: struct.RTCDateTime.html
     pub fn read_rtc(&mut self, century_handler: CMOSCenturyHandler) -> RTCDateTime {
