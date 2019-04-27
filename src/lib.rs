@@ -1,4 +1,4 @@
-/*! 
+/*!
 `cmos` is a library for interfacing with the [CMOS chip](https://en.wikipedia.org/wiki/Nonvolatile_BIOS_memory) found on most motherboards.
 Along with this generic functionality, there is also added functions for reading the [RTC](https://en.wikipedia.org/wiki/Real-time_clock) (Real Time Clock).
 
@@ -46,7 +46,7 @@ pub struct CMOS {
 /// Implements the CMOS struct
 impl CMOS {
     /// Create a new CMOS struct
-    /// 
+    ///
     /// Note: This function is unsafe due to the creation of port I/O
     /// # Examples
     /// ```rust,no_run
@@ -124,9 +124,9 @@ impl CMOS {
 
     /// Reads and checks the status of the update in progress flag.
     /// When reading from the RTC, it's best to read until this flag is 0.
-    /// 
+    ///
     /// More info found [here](https://wiki.osdev.org/CMOS#RTC_Update_In_Progress)
-    /// 
+    ///
     /// # Examples
     /// ```rust,no_run
     /// # use cmos::{CMOS, CMOSCenturyHandler};
@@ -156,7 +156,7 @@ impl CMOS {
     /// Reads from the RTC part of CMOS
     /// Returns an [`RTCDateTime`] struct, which includes all date time fields.
     /// This method automatically converts BCD to binary values and 12 hours to 24 hour if necessary.
-    /// 
+    ///
     /// # Examples
     /// ```rust,no_run
     /// # use cmos::{CMOS, CMOSCenturyHandler};
@@ -176,11 +176,11 @@ impl CMOS {
             year: 0,
         };
 
- 
+
         // Note: This uses the "read registers until you get the same values twice in a row" technique
         //       to avoid getting dodgy/inconsistent values due to RTC updates
         self.read_into_rtc(&mut rtc_time);
-    
+
         let mut century = 0;
         if let CMOSCenturyHandler::CenturyRegister(century_reg) = century_handler {
             century = self.read(century_reg);
@@ -202,7 +202,7 @@ impl CMOS {
             last_month = rtc_time.month;
             last_year = rtc_time.year;
             last_century = century;
-        
+
             self.read_into_rtc(&mut rtc_time);
 
             if last_second != rtc_time.second
@@ -229,7 +229,7 @@ impl CMOS {
 
             if let CMOSCenturyHandler::CenturyRegister(_) = century_handler {
                 century = (century & 0x0F) + ((century / 16) * 10);
-            } 
+            }
         }
 
         // Convert 12 hour clock to 24 hour clock if necessary
@@ -262,12 +262,12 @@ pub enum CMOSCenturyHandler {
 }
 
 /// Results struct from reading RTC with self-explanatory fields
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct RTCDateTime {
-    pub second: u8,
-    pub minute: u8,
-    pub hour: u8,
-    pub day: u8,
-    pub month: u8,
     pub year: usize,
+    pub month: u8,
+    pub day: u8,
+    pub hour: u8,
+    pub minute: u8,
+    pub second: u8,
 }
