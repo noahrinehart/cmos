@@ -262,7 +262,7 @@ pub enum CMOSCenturyHandler {
 }
 
 /// Results struct from reading RTC with self-explanatory fields
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RTCDateTime {
     pub year: usize,
     pub month: u8,
@@ -270,4 +270,27 @@ pub struct RTCDateTime {
     pub hour: u8,
     pub minute: u8,
     pub second: u8,
+}
+
+impl Ord for RTCDateTime {
+    fn cmp(&self, other: &Self) -> Ordering {
+        (self.year, self.month, self.day, self.hour, self.minute, self.second).cmp(
+            &(other.year, other.month, other.day, other.hour, other.minute, other.second)
+        )
+    }
+}
+
+impl PartialOrd for RTCDateTime {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+use core::fmt::{Display, Formatter, Result};
+
+impl Display for RTCDateTime {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        // ISO 8601
+        write!(f, "{}-{}-{}T{}:{}:{}Z", self.year, self.month, self.day, self.hour, self.minute, self.second)
+    }
 }
