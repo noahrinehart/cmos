@@ -35,6 +35,7 @@ let rtc = cmos.read_rtc(CMOSCenturyHandler::CenturyRegister(0xA5));
 #![no_std]
 
 use cpuio::Port;
+use core::{cmp::Ordering, fmt::{Display, Formatter, Result}, u8::MAX, usize::MAX};
 
 /// The standard CMOS struct
 #[derive(Debug)]
@@ -286,11 +287,9 @@ impl PartialOrd for RTCDateTime {
     }
 }
 
-use core::{cmp::Ordering, fmt::{Display, Formatter, Result}, u8::MAX, usize::MAX};
-
 impl Display for RTCDateTime {
+    /// Prints a `RTCDateTime` formatted according to the [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) standard.
     fn fmt(&self, f: &mut Formatter) -> Result {
-        // ISO 8601
         write!(f, "{}-{}-{}T{}:{}:{}Z", self.year, self.month, self.day, self.hour, self.minute, self.second)
     }
 }
