@@ -286,7 +286,7 @@ impl PartialOrd for RTCDateTime {
     }
 }
 
-use core::fmt::{Display, Formatter, Result};
+use core::{cmp::Ordering, fmt::{Display, Formatter, Result}};
 
 impl Display for RTCDateTime {
     fn fmt(&self, f: &mut Formatter) -> Result {
