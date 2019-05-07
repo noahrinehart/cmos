@@ -286,11 +286,36 @@ impl PartialOrd for RTCDateTime {
     }
 }
 
-use core::{cmp::Ordering, fmt::{Display, Formatter, Result}};
+use core::{cmp::Ordering, fmt::{Display, Formatter, Result}, u8::MAX, usize::MAX};
 
 impl Display for RTCDateTime {
     fn fmt(&self, f: &mut Formatter) -> Result {
         // ISO 8601
         write!(f, "{}-{}-{}T{}:{}:{}Z", self.year, self.month, self.day, self.hour, self.minute, self.second)
+    }
+}
+
+impl RTCDateTime {
+    /// Returns the maximal `RTCDateTime` possible.
+    pub fn max() -> RTCDateTime {
+        RTCDateTime {
+            year: usize::MAX,
+            month: u8::MAX,
+            day: u8::MAX,
+            hour: u8::MAX,
+            minute: u8::MAX,
+            second: u8::MAX,
+        }
+    }
+    /// Returns the minimal `RTCDateTime` possible.
+    pub fn min() -> RTCDateTime {
+        RTCDateTime {
+            year: 0,
+            month: 0,
+            day: 0,
+            hour: 0,
+            minute: 0,
+            second: 0,
+        }
     }
 }
