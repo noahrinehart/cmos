@@ -56,12 +56,7 @@ impl CMOS {
 	/// # use cmos::{CMOS, CMOSCenturyHandler};
 	/// let mut cmos = unsafe { CMOS::new() };
 	/// ```
-	pub unsafe fn new() -> CMOS {
-		CMOS {
-			address_port: Port::<u8>::new(0x70),
-			data_port: Port::<u8>::new(0x71),
-		}
-	}
+	pub unsafe fn new() -> CMOS { CMOS { address_port: Port::<u8>::new(0x70), data_port: Port::<u8>::new(0x71) } }
 
 	/// Reads all the registers in CMOS
 	/// # Examples
@@ -141,9 +136,7 @@ impl CMOS {
 	/// }
 	/// ```
 	/// [`CMOS`]: struct.CMOS.html
-	pub fn get_update_in_progress_flag(&mut self) -> u8 {
-		self.read(0x0A) & 0x80
-	}
+	pub fn get_update_in_progress_flag(&mut self) -> u8 { self.read(0x0A) & 0x80 }
 
 	fn read_into_rtc(&mut self, rtc_time: &mut RTCDateTime) {
 		while self.get_update_in_progress_flag() != 0 {
@@ -169,16 +162,7 @@ impl CMOS {
 	/// ```
 	/// [`RTCDateTime`]: struct.RTCDateTime.html
 	pub fn read_rtc(&mut self, century_handler: CMOSCenturyHandler) -> RTCDateTime {
-
-		let mut rtc_time = RTCDateTime {
-			second: 0,
-			minute: 0,
-			hour: 0,
-			day: 0,
-			month: 0,
-			year: 0,
-		};
-
+		let mut rtc_time = RTCDateTime { second: 0, minute: 0, hour: 0, day: 0, month: 0, year: 0 };
 
 		// Note: This uses the "read registers until you get the same values twice in a row" technique
 		//       to avoid getting dodgy/inconsistent values due to RTC updates
@@ -209,12 +193,13 @@ impl CMOS {
 			self.read_into_rtc(&mut rtc_time);
 
 			if last_second != rtc_time.second
-			|| last_minute != rtc_time.minute
-			|| last_hour != rtc_time.hour
-			|| last_day != rtc_time.day
-			|| last_month != rtc_time.month
-			|| last_year != rtc_time.year
-			|| last_century != century {
+				|| last_minute != rtc_time.minute
+				|| last_hour != rtc_time.hour
+				|| last_day != rtc_time.day
+				|| last_month != rtc_time.month
+				|| last_year != rtc_time.year
+				|| last_century != century
+			{
 				break;
 			}
 		}
@@ -225,7 +210,7 @@ impl CMOS {
 		if (register_b & 0x04) == 0 {
 			rtc_time.second = (rtc_time.second & 0x0F) + ((rtc_time.second / 16) * 10);
 			rtc_time.minute = (rtc_time.minute & 0x0F) + ((rtc_time.minute / 16) * 10);
-			rtc_time.hour = ( (rtc_time.hour & 0x0F) + (((rtc_time.hour & 0x70) / 16) * 10) ) | (rtc_time.hour & 0x80);
+			rtc_time.hour = ((rtc_time.hour & 0x0F) + (((rtc_time.hour & 0x70) / 16) * 10)) | (rtc_time.hour & 0x80);
 			rtc_time.day = (rtc_time.day & 0x0F) + ((rtc_time.day / 16) * 10);
 			rtc_time.month = (rtc_time.month & 0x0F) + ((rtc_time.month / 16) * 10);
 			rtc_time.year = (rtc_time.year & 0x0F) + ((rtc_time.year / 16) * 10);
@@ -242,13 +227,13 @@ impl CMOS {
 
 		// Calculate the full (4-digit) year
 		match century_handler {
-			CMOSCenturyHandler::CenturyRegister(_) =>  rtc_time.year += (century * 100) as usize,
+			CMOSCenturyHandler::CenturyRegister(_) => rtc_time.year += (century * 100) as usize,
 			CMOSCenturyHandler::CurrentYear(current_year) => {
 				rtc_time.year += (current_year / 100) * 100;
 				if rtc_time.year < current_year {
 					rtc_time.year += 100;
 				}
-			},
+			}
 		}
 
 		rtc_time
