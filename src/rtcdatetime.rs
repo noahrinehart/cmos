@@ -220,7 +220,7 @@ impl RTCDateTime {
 		new.into_valid()
 	}
 	// Tranforms the calling instance into a tuple containing all its fields by descending order.
-	pub fn into_tuple(self) -> &(usize, u8, u8, u8, u8, u8) {
+	pub fn into_tuple(self) -> &'static (usize, u8, u8, u8, u8, u8) {
 		(self.year, self.month, self.day, self.hour, self.minute, self.second)
 	}
 	/// Returns a tuple containing the fields of a `RTCDateTime` by descending order.
@@ -229,10 +229,10 @@ impl RTCDateTime {
 	}
 	/// returns the maximal number of days given a month and a year.
 	fn days_by_month(year: u8, month: u8) -> u8 {
-		match self.month {
+		match month {
 			1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
 			4 | 6 | 9 | 11 => 30,
-			_ => if (self.year % 4 == 0 && self.year % 100 != 0) || self.year % 400 == 0 {
+			_ => if (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 {
 				29
 			} else {
 				28
