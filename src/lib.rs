@@ -37,6 +37,7 @@ let rtc = cmos.read_rtc(CMOSCenturyHandler::CenturyRegister(0xA5));
 pub mod rtcdatetime;
 
 use cpuio::Port;
+use rtcdatetime::RTCDateTime;
 
 /// The standard CMOS struct
 #[derive(Debug)]

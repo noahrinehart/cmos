@@ -42,7 +42,7 @@ impl Add for RTCDateTime {
 
 	fn add(self, other: Self) -> Self {
 		unimplemented!();
-		min()
+		RTCDateTime::min()
 		/*
 		Self {
 			x: self.x + other.x,
@@ -55,7 +55,7 @@ impl Add for RTCDateTime {
 impl AddAssign for RTCDateTime {
 	fn add_assign(&mut self, other: Self) {
 		unimplemented!();
-		*self = min();
+		*self = RTCDateTime::min();
 		/*
 		*self = Self {
 			x: self.x + other.x,
@@ -70,7 +70,7 @@ impl Sub for RTCDateTime {
 
 	fn sub(self, other: Self) -> Self {
 		unimplemented!();
-		min()
+		RTCDateTime::min()
 		/*
 		Self {
 			x: self.x - other.x,
@@ -83,7 +83,7 @@ impl Sub for RTCDateTime {
 impl SubAssign for RTCDateTime {
 	fn sub_assign(&mut self, other: Self) {
 		unimplemented!();
-		*self = min();
+		*self = RTCDateTime::min();
 		/*
 		*self = Self {
 			x: self.x - other.x,
@@ -151,9 +151,11 @@ impl RTCDateTime {
 			match self.month {
 				1 | 3 | 5 | 7 | 8| 10 | 12 => self.day == 31,
 				4 | 6 | 9 | 11 => self.day == 30,
-				_ => match self.year {
-					(self.year % 4 == 0 && self.year % 100 != 0) || self.year % 400 == 0 => self.day == 29,
-					_ => self.day == 28,
+				_ => if (self.year % 4 == 0 && self.year % 100 != 0) || self.year % 400 == 0 {
+						self.day == 29
+					} else {
+						self.day == 28
+					}
 				}
 			}
 		} else {
