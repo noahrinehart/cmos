@@ -35,7 +35,7 @@ let rtc = cmos.read_rtc(CMOSCenturyHandler::CenturyRegister(0xA5));
 #![no_std]
 
 use cpuio::Port;
-use core::{cmp::Ordering, fmt::{Display, Formatter, Result}, u8::MAX, usize::MAX};
+use core::{cmp::Ordering, fmt::{Display, Formatter, Result}, u8::MAX, usize::MAX as usize_MAX};
 
 /// The standard CMOS struct
 #[derive(Debug)]
@@ -298,12 +298,12 @@ impl RTCDateTime {
     /// Returns the maximal `RTCDateTime` possible.
     pub fn max() -> RTCDateTime {
         RTCDateTime {
-            year: usize::MAX,
-            month: u8::MAX,
-            day: u8::MAX,
-            hour: u8::MAX,
-            minute: u8::MAX,
-            second: u8::MAX,
+            year: usize_MAX,
+            month: MAX,
+            day: MAX,
+            hour: MAX,
+            minute: MAX,
+            second: MAX,
         }
     }
     /// Returns the minimal `RTCDateTime` possible.
