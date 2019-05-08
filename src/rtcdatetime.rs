@@ -1,6 +1,9 @@
 use core::{
-	cmp::Ordering, fmt::{Display, Formatter, Result},
-	ops::{Add, AddAssign, Sub, SubAssign}
+	cmp::Ordering,
+	fmt::{Display, Formatter, Result},
+	ops::{Add, AddAssign, Sub, SubAssign},
+	u8::MAX,
+	usize::MAX as usize_MAX
 };
 
 /// Results struct from reading RTC with self-explanatory fields
@@ -17,16 +20,19 @@ pub struct RTCDateTime {
 impl Ord for RTCDateTime {
 	/// Compare the fields one by one in descending order
 	fn cmp(&self, other: &Self) -> Ordering {
-		(self.year, self.month, self.day, self.hour, self.minute, self.second).cmp(
-			&(other.year, other.month, other.day, other.hour, other.minute, other.second)
-		)
+		(self.year, self.month, self.day, self.hour, self.minute, self.second).cmp(&(
+			other.year,
+			other.month,
+			other.day,
+			other.hour,
+			other.minute,
+			other.second,
+		))
 	}
 }
 
 impl PartialOrd for RTCDateTime {
-	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-		Some(self.cmp(other))
-	}
+	fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.cmp(other)) }
 }
 
 impl Display for RTCDateTime {
@@ -92,57 +98,15 @@ impl SubAssign for RTCDateTime {
 	}
 }
 
-/*
-impl Index<usize> for RTCDateTime {
-    type Output = usize;
-
-    fn index(&self, field: Nucleotide) -> &Self::Output {
-        match nucleotide {
-            0 => &self.a,
-            1 => &self.c,
-            2 => &self.g,
-            3 => &self.t,
-            4 => &self.t,
-            5 => &self.t,
-            6 => &self.t,
-        }
-    }
-}
-
-impl IndexMut<usize> for RTCDateTime {
-    fn index_mut<'a>(&'a mut self, index: Side) -> &'a mut Self::Output {
-        match index {
-            Side::Left => &mut self.left,
-            Side::Right => &mut self.right,
-        }
-    }
-}
-*/
-
 impl RTCDateTime {
 	/// Returns the maximal `RTCDateTime` possible.
 	pub fn max() -> Self {
-		use core::{u8::MAX, usize::MAX as usize_MAX};
-		Self {
-			year: usize_MAX,
-			month: MAX,
-			day: MAX,
-			hour: MAX,
-			minute: MAX,
-			second: MAX,
-		}
+		Self { year: usize_MAX, month: MAX, day: MAX, hour: MAX, minute: MAX, second: MAX }
 	}
+
 	/// Returns the minimal `RTCDateTime` possible.
-	pub fn min() -> Self {
-		Self {
-			year: 0,
-			month: 0,
-			day: 0,
-			hour: 0,
-			minute: 0,
-			second: 0,
-		}
-	}
+	pub fn min() -> Self { Self { year: 0, month: 0, day: 0, hour: 0, minute: 0, second: 0 } }
+
 	/// Check if the `RTCDateTime` instance is a valid date.
 	/// The function takes into account the number of days in months and leap years.
 	pub fn is_valid(&self) -> bool {
@@ -150,16 +114,16 @@ impl RTCDateTime {
 			match self.month {
 				1 | 3 | 5 | 7 | 8 | 10 | 12 => self.day == 31,
 				4 | 6 | 9 | 11 => self.day == 30,
-				_ => self.day == if self.year % 400 == 0 || (self.year % 4 == 0 && self.year % 100 != 0) {
-					29
-				} else {
-					28
+				_ => {
+					self.day
+						== if self.year % 400 == 0 || (self.year % 4 == 0 && self.year % 100 != 0) { 29 } else { 28 }
 				}
 			}
 		} else {
 			false
 		}
 	}
+
 	/// Transforms the caller into a valid `RTCDateTime`.
 	pub fn into_valid(&mut self) -> Option<Self> {
 		if self.is_valid() {
@@ -187,16 +151,16 @@ impl RTCDateTime {
 				self.day += 1;
 			}
 			loop {
-				if self.day < days_by_month(self.year, self.month) && self.month < 13 {
+				if self.day < RTCDateTime::days_by_month(self.year, self.month) && self.month < 13 {
 					break;
 				}
-				if days_by_month(self.year, self.month) < self.day {
-					self.day -= (days_by_month(self.year, self.month) - self.day);
+				if RTCDateTime::days_by_month(self.year, self.month) < self.day {
+					self.day -= RTCDateTime::days_by_month(self.year, self.month) - self.day;
 					self.month += 1;
 				}
 				if 12 < self.month {
 					self.month -= 12;
-					if self.year < core::usize::MAX {
+					if self.year < usize_MAX {
 						self.year += 1;
 					} else {
 						return None;
@@ -206,36 +170,36 @@ impl RTCDateTime {
 			Some(*self)
 		}
 	}
+
 	/// Attempt to create a valid `RTCDateTime` from a tuple.
 	/// Returns `Some(RTCDateTime)` in case of success, or `None` if the operation failed.
 	pub fn from_tuple(tuple: &(usize, u8, u8, u8, u8, u8)) -> Option<Self> {
-		let mut new = Self {
-			year: tuple.0,
-			month: tuple.1,
-			day: tuple.2,
-			hour: tuple.3,
-			minute: tuple.4,
-			second: tuple.5,
-		};
+		let mut new =
+			Self { year: tuple.0, month: tuple.1, day: tuple.2, hour: tuple.3, minute: tuple.4, second: tuple.5 };
 		new.into_valid()
 	}
+
 	// Tranforms the calling instance into a tuple containing all its fields by descending order.
 	pub fn into_tuple(self) -> &'static (usize, u8, u8, u8, u8, u8) {
-		(self.year, self.month, self.day, self.hour, self.minute, self.second)
+		&(self.year, self.month, self.day, self.hour, self.minute, self.second)
 	}
+
 	/// Returns a tuple containing the fields of a `RTCDateTime` by descending order.
 	pub fn as_tuple(&self) -> (usize, u8, u8, u8, u8, u8) {
 		(self.year, self.month, self.day, self.hour, self.minute, self.second)
 	}
+
 	/// returns the maximal number of days given a month and a year.
-	fn days_by_month(year: u8, month: u8) -> u8 {
+	fn days_by_month(year: usize, month: u8) -> u8 {
 		match month {
 			1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
 			4 | 6 | 9 | 11 => 30,
-			_ => if (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 {
-				29
-			} else {
-				28
+			_ => {
+				if (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 {
+					29
+				} else {
+					28
+				}
 			}
 		}
 	}
