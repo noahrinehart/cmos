@@ -3,7 +3,6 @@ use core::{
 	ops::{Add, AddAssign, Sub, SubAssign}
 };
 
-// make RTCDateTime tuple struct ?
 /// Results struct from reading RTC with self-explanatory fields
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct RTCDateTime {
@@ -149,7 +148,7 @@ impl RTCDateTime {
 	pub fn is_valid(&self) -> bool {
 		if self.month < 13 && self.hour < 25 && self.minute < 60 && self.second < 60 {
 			match self.month {
-				1 | 3 | 5 | 7 | 8| 10 | 12 => self.day == 31,
+				1 | 3 | 5 | 7 | 8 | 10 | 12 => self.day == 31,
 				4 | 6 | 9 | 11 => self.day == 30,
 				_ => if (self.year % 4 == 0 && self.year % 100 != 0) || self.year % 400 == 0 {
 						self.day == 29
@@ -167,9 +166,45 @@ impl RTCDateTime {
 		if self.is_valid() {
 			Some(*self)
 		} else {
-			unimplemented!()
-			assert!(self.is_valid());
-			None
+			loop {
+				if self.second < 60 {
+					break;
+				}
+				self.second -= 60;
+				self.minute += 1;
+			}
+			loop {
+				if self.minute < 60 {
+					break;
+				}
+				self.minute -= 60;
+				self.hour += 1;
+			}
+			loop {
+				if self.hour < 24 {
+					break;
+				}
+				self.hour -= 24;
+				self.day += 1;
+			}
+			loop {
+				if self.day < days_by_month(self.year, self.month) && self.month < 13 {
+					break;
+				}
+				if days_by_month(self.year, self.month) < self.day {
+					self.day -= (days_by_month(self.year, self.month) - self.day);
+					self.month += 1;
+				}
+				if 12 < self.month {
+					self.month -= 12;
+					if self.year < core::usize::MAX {
+						self.year += 1;
+					} else {
+						return None;
+					}
+				}
+			}
+			Some(*self)
 		}
 	}
 	/// Attempt to create a valid `RTCDateTime` from a tuple.
@@ -192,5 +227,18 @@ impl RTCDateTime {
 	/// Returns a tuple containing the fields of a `RTCDateTime` by descending order.
 	pub fn as_tuple(&self) -> (usize, u8, u8, u8, u8, u8) {
 		(self.year, self.month, self.day, self.hour, self.minute, self.second)
+	}
+	/// returns the maximal number of days given a month and a year.
+	fn days_by_month(year: u8, month: u8) -> u8 {
+		match self.month {
+			1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+			4 | 6 | 9 | 11 => 30,
+			_ => if (self.year % 4 == 0 && self.year % 100 != 0) || self.year % 400 == 0 {
+					29
+				} else {
+					28
+				}
+			}
+		}
 	}
 }
