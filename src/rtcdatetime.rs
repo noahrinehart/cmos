@@ -150,11 +150,10 @@ impl RTCDateTime {
 			match self.month {
 				1 | 3 | 5 | 7 | 8 | 10 | 12 => self.day == 31,
 				4 | 6 | 9 | 11 => self.day == 30,
-				_ => if (self.year % 4 == 0 && self.year % 100 != 0) || self.year % 400 == 0 {
-						self.day == 29
-					} else {
-						self.day == 28
-					}
+				_ => self.day == if self.year % 400 == 0 || (self.year % 4 == 0 && self.year % 100 != 0) {
+					29
+				} else {
+					28
 				}
 			}
 		} else {
@@ -234,10 +233,9 @@ impl RTCDateTime {
 			1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
 			4 | 6 | 9 | 11 => 30,
 			_ => if (self.year % 4 == 0 && self.year % 100 != 0) || self.year % 400 == 0 {
-					29
-				} else {
-					28
-				}
+				29
+			} else {
+				28
 			}
 		}
 	}
