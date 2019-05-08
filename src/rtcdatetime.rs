@@ -3,7 +3,7 @@ use core::{
 	fmt::{Display, Formatter, Result},
 	ops::{Add, AddAssign, Sub, SubAssign},
 	u8::MAX,
-	usize::MAX as usize_MAX
+	usize::MAX as usize_MAX,
 };
 
 /// Results struct from reading RTC with self-explanatory fields
@@ -100,9 +100,7 @@ impl SubAssign for RTCDateTime {
 
 impl RTCDateTime {
 	/// Returns the maximal `RTCDateTime` possible.
-	pub fn max() -> Self {
-		Self { year: usize_MAX, month: MAX, day: MAX, hour: MAX, minute: MAX, second: MAX }
-	}
+	pub fn max() -> Self { Self { year: usize_MAX, month: MAX, day: MAX, hour: MAX, minute: MAX, second: MAX } }
 
 	/// Returns the minimal `RTCDateTime` possible.
 	pub fn min() -> Self { Self { year: 0, month: 0, day: 0, hour: 0, minute: 0, second: 0 } }
@@ -125,9 +123,9 @@ impl RTCDateTime {
 	}
 
 	/// Transforms the caller into a valid `RTCDateTime`.
-	pub fn into_valid(&mut self) -> Option<Self> {
+	pub fn into_valid(mut self) -> Option<Self> {
 		if self.is_valid() {
-			Some(*self)
+			Some(self)
 		} else {
 			loop {
 				if self.second < 60 {
@@ -167,21 +165,20 @@ impl RTCDateTime {
 					}
 				}
 			}
-			Some(*self)
+			Some(self)
 		}
 	}
 
 	/// Attempt to create a valid `RTCDateTime` from a tuple.
 	/// Returns `Some(RTCDateTime)` in case of success, or `None` if the operation failed.
 	pub fn from_tuple(tuple: &(usize, u8, u8, u8, u8, u8)) -> Option<Self> {
-		let mut new =
-			Self { year: tuple.0, month: tuple.1, day: tuple.2, hour: tuple.3, minute: tuple.4, second: tuple.5 };
+		let new = Self { year: tuple.0, month: tuple.1, day: tuple.2, hour: tuple.3, minute: tuple.4, second: tuple.5 };
 		new.into_valid()
 	}
 
 	// Tranforms the calling instance into a tuple containing all its fields by descending order.
-	pub fn into_tuple(self) -> &'static (usize, u8, u8, u8, u8, u8) {
-		&(self.year, self.month, self.day, self.hour, self.minute, self.second)
+	pub fn into_tuple(self) -> (usize, u8, u8, u8, u8, u8) {
+		(self.year, self.month, self.day, self.hour, self.minute, self.second)
 	}
 
 	/// Returns a tuple containing the fields of a `RTCDateTime` by descending order.
