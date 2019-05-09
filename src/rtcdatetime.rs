@@ -146,7 +146,7 @@ impl RTCDateTime {
 
 	/// Attempt to create a valid `RTCDateTime` from a tuple.
 	/// Returns `Some(RTCDateTime)` in case of success, or `None` if the operation failed.
-	pub fn from_tuple(tuple: &(usize, u8, u8, u8, u8, u8)) -> Option<Self> {
+	pub fn from_tuple(tuple: &(usize, u8, u8, u8, u8, u8)) -> Self {
 		let new = Self { year: tuple.0, month: tuple.1, day: tuple.2, hour: tuple.3, minute: tuple.4, second: tuple.5 };
 		new.into_valid()
 	}
