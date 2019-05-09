@@ -98,9 +98,9 @@ impl RTCDateTime {
 	}
 
 	/// Transforms the caller into a valid `RTCDateTime`.
-	pub fn into_valid(mut self) -> Option<Self> {
+	pub fn into_valid(mut self) -> Self {
 		if self.is_valid() {
-			Some(self)
+			self
 		} else {
 			loop {
 				if self.second < 60 {
@@ -128,7 +128,7 @@ impl RTCDateTime {
 					break;
 				}
 				if RTCDateTime::days_by_month(self.year, self.month) < self.day {
-					self.day -= RTCDateTime::days_by_month(self.year, self.month) - self.day;
+					self.day -= RTCDateTime::days_by_month(self.year, self.month);
 					self.month += 1;
 				}
 				if 12 < self.month {
@@ -136,11 +136,11 @@ impl RTCDateTime {
 					if self.year < usize_MAX {
 						self.year += 1;
 					} else {
-						return None;
+						return RTCDateTime::max();
 					}
 				}
 			}
-			Some(self)
+			self
 		}
 	}
 
