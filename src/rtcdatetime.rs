@@ -94,18 +94,7 @@ impl RTCDateTime {
 	/// Check if the `RTCDateTime` instance is a valid date.
 	/// The function takes into account the number of days in months and leap years.
 	pub fn is_valid(&self) -> bool {
-		if self.month < 13 && self.hour < 25 && self.minute < 60 && self.second < 60 {
-			match self.month {
-				1 | 3 | 5 | 7 | 8 | 10 | 12 => self.day == 31,
-				4 | 6 | 9 | 11 => self.day == 30,
-				_ => {
-					self.day
-						== if self.year % 400 == 0 || (self.year % 4 == 0 && self.year % 100 != 0) { 29 } else { 28 }
-				}
-			}
-		} else {
-			false
-		}
+		self.month < 13 && self.hour < 25 && self.minute < 60 && self.second < 60 && self.day == RTCDateTime::days_by_month(self.year, self.month)
 	}
 
 	/// Transforms the caller into a valid `RTCDateTime`.
