@@ -149,12 +149,13 @@ impl RTCDateTime {
 		if self.is_valid() {
 			self
 		} else {
+			// replace by /= and %=
 			loop {
 				if self.second < 60 {
 					break;
 				}
 				self.second -= 60;
-				self.minute += 1;
+				self.minute += 1; // check minute < 255 and cascade
 			}
 			loop {
 				if self.minute < 60 {
