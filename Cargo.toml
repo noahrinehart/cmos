@@ -5,12 +5,16 @@ authors = ["Noah Rinehart <rinehart.noah@gmail.com>", "Antoine \"Anthony\" Sébe
 description = "A utility to read, write CMOS and RTC data. Standard library not required."
 documentation = "https://docs.rs/cmos/"
 homepage = "https://github.com/noahrinehart/cmos"
-repository = "https://github.com/AntoineSebert/cmos"
+repository = "https://github.com/noahrinehart/cmos"
 readme = "README.md"
 keywords = ["osdev", "cmos", "rtc", "port", "io"]
 categories = ["date-and-time", "embedded", "hardware-support", "no-std", "os"]
 license = "MIT"
 edition = "2018"
+
+[badges]
+travis-ci = { repository = "noahrinehart/cmos" }
+coveralls = { repository = "noahrinehart/cmos" }
 
 [dependencies]
 cpuio = "0.2.0"
