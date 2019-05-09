@@ -59,14 +59,7 @@ impl Add for RTCDateTime {
 
 impl AddAssign for RTCDateTime {
 	fn add_assign(&mut self, other: Self) {
-		unimplemented!();
-		*self = RTCDateTime::min();
-		/*
-		*self = Self {
-			x: self.x + other.x,
-			y: self.y + other.y,
-		};
-		*/
+		*self = RTCDateTime::add(*self, other);
 	}
 }
 
@@ -87,14 +80,7 @@ impl Sub for RTCDateTime {
 
 impl SubAssign for RTCDateTime {
 	fn sub_assign(&mut self, other: Self) {
-		unimplemented!();
-		*self = RTCDateTime::min();
-		/*
-		*self = Self {
-			x: self.x - other.x,
-			y: self.y - other.y,
-		};
-		*/
+		*self = RTCDateTime::sub(*self, other);
 	}
 }
 
