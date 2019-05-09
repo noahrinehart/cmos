@@ -46,27 +46,67 @@ impl Add for RTCDateTime {
 	type Output = Self;
 
 	fn add(self, other: Self) -> Self {
-		unimplemented!();
-		RTCDateTime::min()
-		/*
-		Self {
-			x: self.x + other.x,
-			y: self.y + other.y,
+		if !self.is_valid() {
+			self.into_valid();
 		}
-		*/
+		if !other.is_valid() {
+			other.into_valid();
+		}
+
+		if usize_MAX - self.year < other.year {
+			return RTCDateTime::max();
+		}
+
+		let mut seconds = self.second + other.second;
+
+		let mut minutes = self.minute + other.minute;
+		if 59 < seconds {
+			minutes += seconds.div_euclid(60);
+			seconds %= 60;
+		}
+
+		let mut hours = self.hour + other.hour;
+		if 59 < minutes {
+			hours += minutes.div_euclid(60);
+			minutes %= 60;
+		}
+
+		let mut days = self.day + other.day;
+		if 23 < hours {
+			days += hours.div_euclid(24);
+			hours %= 24;
+		}
+
+		let mut months = self.month + other.month;
+
+		let mut years = self.year + other.year;
+		loop {
+			if 12 < months {
+				years += months.div_euclid(13) as usize;
+				months %= 13;
+			}
+			if RTCDateTime::days_by_month(years, months) < days {
+				days -= RTCDateTime::days_by_month(years, months);
+				months += 1;
+			} else {
+				break;
+			}
+		}
+
+		Self {
+			year: years,
+			month: months,
+			day: days,
+			hour: hours,
+			minute: minutes,
+			second: seconds,
+		}
 	}
 }
 
 impl AddAssign for RTCDateTime {
 	fn add_assign(&mut self, other: Self) {
-		unimplemented!();
-		*self = RTCDateTime::min();
-		/*
-		*self = Self {
-			x: self.x + other.x,
-			y: self.y + other.y,
-		};
-		*/
+		*self = RTCDateTime::add(*self, other);
 	}
 }
 
@@ -87,14 +127,7 @@ impl Sub for RTCDateTime {
 
 impl SubAssign for RTCDateTime {
 	fn sub_assign(&mut self, other: Self) {
-		unimplemented!();
-		*self = RTCDateTime::min();
-		/*
-		*self = Self {
-			x: self.x - other.x,
-			y: self.y - other.y,
-		};
-		*/
+		*self = RTCDateTime::sub(*self, other);
 	}
 }
 
@@ -108,24 +141,13 @@ impl RTCDateTime {
 	/// Check if the `RTCDateTime` instance is a valid date.
 	/// The function takes into account the number of days in months and leap years.
 	pub fn is_valid(&self) -> bool {
-		if self.month < 13 && self.hour < 25 && self.minute < 60 && self.second < 60 {
-			match self.month {
-				1 | 3 | 5 | 7 | 8 | 10 | 12 => self.day == 31,
-				4 | 6 | 9 | 11 => self.day == 30,
-				_ => {
-					self.day
-						== if self.year % 400 == 0 || (self.year % 4 == 0 && self.year % 100 != 0) { 29 } else { 28 }
-				}
-			}
-		} else {
-			false
-		}
+		self.month < 13 && self.hour < 25 && self.minute < 60 && self.second < 60 && self.day == RTCDateTime::days_by_month(self.year, self.month)
 	}
 
 	/// Transforms the caller into a valid `RTCDateTime`.
-	pub fn into_valid(mut self) -> Option<Self> {
+	pub fn into_valid(mut self) -> Self {
 		if self.is_valid() {
-			Some(self)
+			self
 		} else {
 			loop {
 				if self.second < 60 {
@@ -153,7 +175,7 @@ impl RTCDateTime {
 					break;
 				}
 				if RTCDateTime::days_by_month(self.year, self.month) < self.day {
-					self.day -= RTCDateTime::days_by_month(self.year, self.month) - self.day;
+					self.day -= RTCDateTime::days_by_month(self.year, self.month);
 					self.month += 1;
 				}
 				if 12 < self.month {
@@ -161,17 +183,17 @@ impl RTCDateTime {
 					if self.year < usize_MAX {
 						self.year += 1;
 					} else {
-						return None;
+						return RTCDateTime::max();
 					}
 				}
 			}
-			Some(self)
+			self
 		}
 	}
 
 	/// Attempt to create a valid `RTCDateTime` from a tuple.
 	/// Returns `Some(RTCDateTime)` in case of success, or `None` if the operation failed.
-	pub fn from_tuple(tuple: &(usize, u8, u8, u8, u8, u8)) -> Option<Self> {
+	pub fn from_tuple(tuple: &(usize, u8, u8, u8, u8, u8)) -> Self {
 		let new = Self { year: tuple.0, month: tuple.1, day: tuple.2, hour: tuple.3, minute: tuple.4, second: tuple.5 };
 		new.into_valid()
 	}
