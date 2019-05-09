@@ -33,6 +33,7 @@ let rtc = cmos.read_rtc(CMOSCenturyHandler::CenturyRegister(0xA5));
 */
 
 #![no_std]
+#![feature(euclidean_division)]
 
 pub mod rtcdatetime;
 

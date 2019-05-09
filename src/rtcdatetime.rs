@@ -46,14 +46,61 @@ impl Add for RTCDateTime {
 	type Output = Self;
 
 	fn add(self, other: Self) -> Self {
-		unimplemented!();
-		RTCDateTime::min()
-		/*
-		Self {
-			x: self.x + other.x,
-			y: self.y + other.y,
+		if !self.is_valid() {
+			self.into_valid();
 		}
-		*/
+		if !other.is_valid() {
+			other.into_valid();
+		}
+
+		if usize_MAX - self.year < other.year {
+			return RTCDateTime::max();
+		}
+
+		let mut seconds = self.second + other.second;
+
+		let mut minutes = self.minute + other.minute;
+		if 59 < seconds {
+			minutes += seconds.div_euclid(60);
+			seconds %= 60;
+		}
+
+		let mut hours = self.hour + other.hour;
+		if 59 < minutes {
+			hours += minutes.div_euclid(60);
+			minutes %= 60;
+		}
+
+		let mut days = self.day + other.day;
+		if 23 < hours {
+			days += hours.div_euclid(24);
+			hours %= 24;
+		}
+
+		let mut months = self.month + other.month;
+
+		let mut years = self.year + other.year;
+		loop {
+			if 12 < months {
+				years += months.div_euclid(13) as usize;
+				months %= 13;
+			}
+			if RTCDateTime::days_by_month(years, months) < days {
+				days -= RTCDateTime::days_by_month(years, months);
+				months += 1;
+			} else {
+				break;
+			}
+		}
+
+		Self {
+			year: years,
+			month: months,
+			day: days,
+			hour: hours,
+			minute: minutes,
+			second: seconds,
+		}
 	}
 }
 
