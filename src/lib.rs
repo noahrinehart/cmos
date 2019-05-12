@@ -33,12 +33,13 @@ let rtc = cmos.read_rtc(CMOSCenturyHandler::CenturyRegister(0xA5));
 */
 
 #![no_std]
-#![feature(euclidean_division)]
-
-pub mod rtcdatetime;
 
 use cpuio::Port;
-use rtcdatetime::RTCDateTime;
+use core::{
+	cmp::Ordering,
+	fmt::{Display, Formatter, Result},
+	usize,
+};
 
 /// The standard CMOS struct
 #[derive(Debug)]
@@ -165,8 +166,8 @@ impl CMOS {
 	pub fn read_rtc(&mut self, century_handler: CMOSCenturyHandler) -> RTCDateTime {
 		let mut rtc_time = RTCDateTime { second: 0, minute: 0, hour: 0, day: 0, month: 0, year: 0 };
 
-		// Note: This uses the "read registers until you get the same values twice in a row" technique
-		//       to avoid getting dodgy/inconsistent values due to RTC updates
+		// Note: This uses the "read registers until you get the same values twice in a row" technique to avoid getting
+		// dodgy/inconsistent values due to RTC updates
 		self.read_into_rtc(&mut rtc_time);
 
 		let mut century = 0;
@@ -248,4 +249,93 @@ pub enum CMOSCenturyHandler {
 	CenturyRegister(u8),
 	/// This option is for providing the current year as a backup
 	CurrentYear(usize),
+}
+
+/// Results struct from reading RTC with self-explanatory fields
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct RTCDateTime {
+	pub year: usize,
+	pub month: u8,
+	pub day: u8,
+	pub hour: u8,
+	pub minute: u8,
+	pub second: u8,
+}
+
+pub const MAX: RTCDateTime = RTCDateTime { year: usize::MAX, month: 12, day: 31, hour: 23, minute: 59, second: 59 };
+
+pub const MIN: RTCDateTime = RTCDateTime { year: 0, month: 1, day: 1, hour: 0, minute: 0, second: 0 };
+
+impl Ord for RTCDateTime {
+	/// Compare the fields one by one in descending order
+	fn cmp(&self, other: &Self) -> Ordering {
+		(self.year, self.month, self.day, self.hour, self.minute, self.second).cmp(&(
+			other.year,
+			other.month,
+			other.day,
+			other.hour,
+			other.minute,
+			other.second,
+		))
+	}
+}
+
+impl PartialOrd for RTCDateTime {
+	fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.cmp(other)) }
+}
+
+impl Display for RTCDateTime {
+	/// Prints a `RTCDateTime` formatted according to the [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) standard.
+	fn fmt(&self, f: &mut Formatter) -> Result {
+		write!(f, "{}-{}-{}T{}:{}:{}Z", self.year, self.month, self.day, self.hour, self.minute, self.second)
+	}
+}
+
+impl RTCDateTime {
+	/// Check if the `RTCDateTime` instance is a valid date.
+	/// The function takes into account the number of days in months and leap years.
+	#[inline]
+	pub fn is_valid(&self) -> bool {
+		self.month < 13
+			&& self.hour < 24
+			&& self.minute < 60
+			&& self.second < 60
+			&& self.day < RTCDateTime::days_by_month(self.year, self.month)
+	}
+
+	/// Attempt to create a valid `RTCDateTime` from a tuple.
+	/// Returns `Some(RTCDateTime)` in case of success, or `None` if the operation failed.
+	#[inline]
+	pub fn from_tuple(tuple: &(usize, u8, u8, u8, u8, u8)) -> Self {
+		Self { year: tuple.0, month: tuple.1, day: tuple.2, hour: tuple.3, minute: tuple.4, second: tuple.5 }
+	}
+
+	// Tranforms the calling instance into a tuple containing all its fields by descending order.
+	#[inline]
+	pub fn into_tuple(self) -> (usize, u8, u8, u8, u8, u8) {
+		(self.year, self.month, self.day, self.hour, self.minute, self.second)
+	}
+
+	/// Returns a tuple containing the fields of a `RTCDateTime` by descending order.
+	#[inline]
+	pub fn as_tuple(&self) -> (usize, u8, u8, u8, u8, u8) {
+		(self.year, self.month, self.day, self.hour, self.minute, self.second)
+	}
+
+	/// Returns the maximal number of days given a month and a year.
+	#[doc(hidden)]
+	fn days_by_month(year: usize, month: u8) -> u8 {
+		match month {
+			1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+			4 | 6 | 9 | 11 => 30,
+			2 => {
+				if (year % 4 == 0 && year % 100 != 0) || year % 400 == 0 {
+					29
+				} else {
+					28
+				}
+			},
+			_ => 0,
+		}
+	}
 }
