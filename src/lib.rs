@@ -305,15 +305,15 @@ impl RTCDateTime {
 
 	/// Attempt to create a valid `RTCDateTime` from a tuple.
 	/// Returns `Some(RTCDateTime)` in case of success, or `None` if the operation failed.
+	/// The datetime eventually returned is guaranteed to be valid.
 	#[inline]
-	pub fn from_tuple(tuple: &(usize, u8, u8, u8, u8, u8)) -> Self {
-		Self { year: tuple.0, month: tuple.1, day: tuple.2, hour: tuple.3, minute: tuple.4, second: tuple.5 }
-	}
-
-	// Tranforms the calling instance into a tuple containing all its fields by descending order.
-	#[inline]
-	pub fn into_tuple(self) -> (usize, u8, u8, u8, u8, u8) {
-		(self.year, self.month, self.day, self.hour, self.minute, self.second)
+	pub fn from_tuple(tuple: &(usize, u8, u8, u8, u8, u8)) -> Option<Self> {
+		let datetime = Self { year: tuple.0, month: tuple.1, day: tuple.2, hour: tuple.3, minute: tuple.4, second: tuple.5 };
+		if datetime.is_valid() {
+			Some(datetime)
+		} else {
+			None
+		}
 	}
 
 	/// Returns a tuple containing the fields of a `RTCDateTime` by descending order.
