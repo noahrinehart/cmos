@@ -17,4 +17,4 @@ travis-ci = { repository = "noahrinehart/cmos" }
 coveralls = { repository = "noahrinehart/cmos" }
 
 [dependencies]
-cpuio = "0.2.0"
+cpuio = "^0.3"
