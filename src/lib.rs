@@ -140,16 +140,15 @@ impl CMOS {
 	/// [`CMOS`]: struct.CMOS.html
 	pub fn get_update_in_progress_flag(&mut self) -> u8 { self.read(0x0A) & 0x80 }
 
-	fn read_into_rtc(&mut self, rtc_time: &mut RTCDateTime) {
-		while self.get_update_in_progress_flag() != 0 {
-			rtc_time.second = self.read(0x00);
-			rtc_time.minute = self.read(0x02);
-			rtc_time.hour = self.read(0x04);
-			rtc_time.day = self.read(0x07);
-			rtc_time.month = self.read(0x08);
-			rtc_time.year = self.read(0x09) as usize;
-		}
-	}
+        pub fn is_update_in_progress(&mut self) -> bool{
+            if self.read(0x0A) & 0x80 == 0{false}else{true}
+        }
+
+
+        #[inline(always)]
+        fn bcd_to_binary(bcd: u8) -> u8{
+            (bcd & 0x0F) + ((bcd / 16) * 10)
+        }
 
 	/// Reads from the RTC part of CMOS
 	/// Returns an [`RTCDateTime`] struct, which includes all date time fields.
@@ -164,58 +163,31 @@ impl CMOS {
 	/// ```
 	/// [`RTCDateTime`]: struct.RTCDateTime.html
 	pub fn read_rtc(&mut self, century_handler: CMOSCenturyHandler) -> RTCDateTime {
-		let mut rtc_time = RTCDateTime { second: 0, minute: 0, hour: 0, day: 0, month: 0, year: 0 };
-
 		// Note: This uses the "read registers until you get the same values twice in a row" technique to avoid getting
 		// dodgy/inconsistent values due to RTC updates
-		self.read_into_rtc(&mut rtc_time);
 
 		let mut century = 0;
 		if let CMOSCenturyHandler::CenturyRegister(century_reg) = century_handler {
 			century = self.read(century_reg);
 		}
 
-		let mut last_second;
-		let mut last_minute;
-		let mut last_hour;
-		let mut last_day;
-		let mut last_month;
-		let mut last_year;
-		let mut last_century;
+		let mut rtc_time = loop {
+                        let prev = RTCDateTime::from_cmos(self);
+                        let current = RTCDateTime::from_cmos(self);
 
-		loop {
-			last_second = rtc_time.second;
-			last_minute = rtc_time.minute;
-			last_hour = rtc_time.hour;
-			last_day = rtc_time.day;
-			last_month = rtc_time.month;
-			last_year = rtc_time.year;
-			last_century = century;
-
-			self.read_into_rtc(&mut rtc_time);
-
-			if last_second != rtc_time.second
-				|| last_minute != rtc_time.minute
-				|| last_hour != rtc_time.hour
-				|| last_day != rtc_time.day
-				|| last_month != rtc_time.month
-				|| last_year != rtc_time.year
-				|| last_century != century
-			{
-				break;
-			}
-		}
+                        if prev == current{break prev}
+		};
 
 		let register_b = self.read(0x0B);
 
 		// Convert BCD to binary values if necessary
 		if (register_b & 0x04) == 0 {
-			rtc_time.second = (rtc_time.second & 0x0F) + ((rtc_time.second / 16) * 10);
-			rtc_time.minute = (rtc_time.minute & 0x0F) + ((rtc_time.minute / 16) * 10);
-			rtc_time.hour = ((rtc_time.hour & 0x0F) + (((rtc_time.hour & 0x70) / 16) * 10)) | (rtc_time.hour & 0x80);
-			rtc_time.day = (rtc_time.day & 0x0F) + ((rtc_time.day / 16) * 10);
-			rtc_time.month = (rtc_time.month & 0x0F) + ((rtc_time.month / 16) * 10);
-			rtc_time.year = (rtc_time.year & 0x0F) + ((rtc_time.year / 16) * 10);
+			rtc_time.second = Self::bcd_to_binary(rtc_time.second);
+			rtc_time.minute = Self::bcd_to_binary(rtc_time.minute);
+			rtc_time.hour = Self::bcd_to_binary(rtc_time.hour);
+			rtc_time.day = Self::bcd_to_binary(rtc_time.day);
+			rtc_time.month = Self::bcd_to_binary(rtc_time.month);
+			rtc_time.year = Self::bcd_to_binary(rtc_time.year as u8) as usize;
 
 			if let CMOSCenturyHandler::CenturyRegister(_) = century_handler {
 				century = (century & 0x0F) + ((century / 16) * 10);
@@ -240,6 +212,14 @@ impl CMOS {
 
 		rtc_time
 	}
+
+        /// This method is similar to read_rtc however it waits until the RTC updates itself then
+        /// returns the current time
+        pub fn wait_for_update_then_read_rtc(&mut self , century_handler: CMOSCenturyHandler) -> RTCDateTime{
+            // wait until to rtc updates itself
+            while self.get_update_in_progress_flag() == 0 {}
+            self.read_rtc(century_handler)
+        }
 }
 
 /// Enum for determining how to calculate the year when reading the RTC
@@ -338,4 +318,17 @@ impl RTCDateTime {
 			_ => 0,
 		}
 	}
+
+        pub fn from_cmos(cmos: &mut CMOS) -> Self{
+            while cmos.is_update_in_progress() {}
+
+            Self{
+                second: cmos.read(0x00),
+                minute: cmos.read(0x02),
+                hour: cmos.read(0x04),
+                day: cmos.read(0x07),
+                month: cmos.read(0x08),
+                year: cmos.read(0x09) as usize,
+            }            
+        }
 }
