@@ -240,6 +240,15 @@ impl CMOS {
 
 		rtc_time
 	}
+	
+        /// This method is similar to read_rtc however it waits until the RTC updates itself then
+        /// returns the current time
+        pub fn wait_for_update_then_read_rtc(&mut self , century_handler: CMOSCenturyHandler) -> RTCDateTime{
+            // wait until to rtc updates itself
+            while self.get_update_in_progress_flag() == 0 {}
+            self.read_rtc(century_handler)
+        }
+
 }
 
 /// Enum for determining how to calculate the year when reading the RTC
