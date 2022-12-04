@@ -33,8 +33,7 @@ let rtc = cmos.read_rtc(CMOSCenturyHandler::CenturyRegister(0xA5));
 */
 
 #![no_std]
-
-use cpuio::Port;
+use x86_64::instructions::port::*;
 use core::{
 	cmp::Ordering,
 	fmt::{Display, Formatter, Result},
@@ -72,8 +71,10 @@ impl CMOS {
 	/// ```
 	pub fn read_all(&mut self, output: &mut [u8; 128]) {
 		for i in 0..128 {
-			self.address_port.write(i);
-			output[i as usize] = self.data_port.read();
+			unsafe {
+				self.address_port.write(i);
+				output[i as usize] = self.data_port.read();
+			}
 		}
 	}
 
@@ -90,8 +91,10 @@ impl CMOS {
 	/// ```
 	pub fn write_all(&mut self, input: &[u8; 128]) {
 		for i in 0..128 {
-			self.address_port.write(i);
-			self.data_port.write(input[i as usize]);
+			unsafe {
+				self.address_port.write(i);
+				self.data_port.write(input[i as usize]);
+			}
 		}
 	}
 
@@ -104,8 +107,10 @@ impl CMOS {
 	/// let reg_4 = cmos.read(0x04);
 	/// ```
 	pub fn read(&mut self, reg: u8) -> u8 {
-		self.address_port.write(reg);
-		self.data_port.read()
+		unsafe {
+			self.address_port.write(reg);
+			self.data_port.read()
+		}
 	}
 
 	/// Writes to a singe register in CMOS
@@ -118,8 +123,10 @@ impl CMOS {
 	/// cmos.write(0x04, 0x08);
 	/// ```
 	pub fn write(&mut self, reg: u8, val: u8) {
-		self.address_port.write(reg);
-		self.data_port.write(val);
+		unsafe {
+			self.address_port.write(reg);
+			self.data_port.write(val);
+		}
 	}
 
 	/// Reads and checks the status of the update in progress flag.
